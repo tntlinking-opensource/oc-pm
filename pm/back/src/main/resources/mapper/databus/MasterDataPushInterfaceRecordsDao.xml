@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.databus.dao.MasterDataPushInterfaceRecordsDao">
+  <sql id="masterDataPushInterfaceRecordsColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.master_data_push_records_id AS "masterDataPushRecords.id",
+      IFNULL(masterDataPushRecords.master_data_batch_records_id,'') AS "masterDataPushRecords.masterDataBatchRecordsId",
+      IFNULL(masterDataPushRecords.tenant_id,'') AS "masterDataPushRecords.tenantId",
+      IFNULL(masterDataPushRecords.master_data_type_id,'') AS "masterDataPushRecords.masterDataTypeId",
+      IFNULL(masterDataPushRecords.data_key,'') AS "masterDataPushRecords.dataKey",
+      IFNULL(masterDataPushRecords.target_app_id,'') AS "masterDataPushRecords.targetAppId",
+      IFNULL(masterDataPushRecords.push_status,'') AS "masterDataPushRecords.pushStatus",
+      IFNULL(masterDataPushRecords.data_version,'') AS "masterDataPushRecords.dataVersion",
+      IFNULL(masterDataPushRecords.last_send_time,'') AS "masterDataPushRecords.lastSendTime",
+      IFNULL(masterDataPushRecords.push_fail_info,'') AS "masterDataPushRecords.pushFailInfo",
+      IFNULL(masterDataPushRecords.push_fail_size,'') AS "masterDataPushRecords.pushFailSize",
+      a.push_date AS "pushDate",
+      a.push_data AS "pushData",
+      a.push_status AS "pushStatus",
+      a.push_fail_info AS "pushFailInfo",
+      a.return_data AS "returnData",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+    </trim>
+  </sql>
+  <sql id="masterDataPushInterfaceRecordsJoins">
+    LEFT JOIN master_data_push_records masterDataPushRecords ON masterDataPushRecords.id = a.master_data_push_records_id
+  </sql>
+  <resultMap id="resultMasterDataPushInterfaceRecordsMap" type="com.geeke.databus.entity.MasterDataPushInterfaceRecords">
+    <result property="id" column="id" />
+    <result property="pushDate" column="pushDate" />
+    <result property="pushData" column="pushData" />
+    <result property="pushStatus" column="pushStatus" />
+    <result property="pushFailInfo" column="pushFailInfo" />
+    <result property="returnData" column="returnData" />
+    <result property="remarks" column="remarks" />
+    <result property="createBy" column="createBy" />
+    <result property="createDate" column="createDate" />
+    <result property="updateBy" column="updateBy" />
+    <result property="updateDate" column="updateDate" />
+    <result property="delFlag" column="delFlag" />
+    <association property="masterDataPushRecords" javaType="com.geeke.databus.entity.MasterDataPushRecords">
+      <result property="id" column="masterDataPushRecords.id" />
+      <result property="tenantId" column="masterDataPushRecords.tenantId" />
+      <result property="dataKey" column="masterDataPushRecords.dataKey" />
+      <result property="targetAppId" column="masterDataPushRecords.targetAppId" />
+      <result property="pushStatus" column="masterDataPushRecords.pushStatus" />
+      <result property="dataVersion" column="masterDataPushRecords.dataVersion" />
+      <result property="lastSendTime" column="masterDataPushRecords.lastSendTime" />
+      <result property="pushFailInfo" column="masterDataPushRecords.pushFailInfo" />
+      <result property="pushFailSize" column="masterDataPushRecords.pushFailSize" />
+    </association>
+  </resultMap>
+  <select id="get" resultMap="resultMasterDataPushInterfaceRecordsMap">
+    SELECT
+    <include refid="masterDataPushInterfaceRecordsColumns" />
+    FROM master_data_push_interface_records a
+    <include refid="masterDataPushInterfaceRecordsJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM master_data_push_interface_records a
+    <include refid="masterDataPushInterfaceRecordsJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultMap="resultMasterDataPushInterfaceRecordsMap">
+    SELECT
+    <include refid="masterDataPushInterfaceRecordsColumns" />
+    FROM master_data_push_interface_records a
+    <include refid="masterDataPushInterfaceRecordsJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultMap="resultMasterDataPushInterfaceRecordsMap">
+    SELECT
+    <include refid="masterDataPushInterfaceRecordsColumns" />
+    FROM master_data_push_interface_records a
+    <include refid="masterDataPushInterfaceRecordsJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO master_data_push_interface_records(
+    <trim suffixOverrides=",">
+      id,
+      master_data_push_records_id,
+      push_date,
+      push_data,
+      push_status,
+      push_fail_info,
+      return_data,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ masterDataPushRecords.id },
+      #{ pushDate },
+      #{ pushData },
+      #{ pushStatus },
+      #{ pushFailInfo },
+      #{ returnData },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE master_data_push_interface_records SET
+    <trim suffixOverrides=",">
+      master_data_push_records_id = #{ masterDataPushRecords.id },
+      push_date = #{ pushDate },
+      push_data = #{ pushData },
+      push_status = #{ pushStatus },
+      push_fail_info = #{ pushFailInfo },
+      return_data = #{ returnData },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE master_data_push_interface_records SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO master_data_push_interface_records(
+    <trim suffixOverrides=",">
+      id,
+      master_data_push_records_id,
+      push_date,
+      push_data,
+      push_status,
+      push_fail_info,
+      return_data,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.masterDataPushRecords.id},
+        #{entity.pushDate},
+        #{entity.pushData},
+        #{entity.pushStatus},
+        #{entity.pushFailInfo},
+        #{entity.returnData},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE master_data_push_interface_records
+    <set>
+      <trim prefix="master_data_push_records_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.masterDataPushRecords.id}
+        </foreach>
+      </trim>
+      <trim prefix="push_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.pushDate}
+        </foreach>
+      </trim>
+      <trim prefix="push_data=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.pushData}
+        </foreach>
+      </trim>
+      <trim prefix="push_status=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.pushStatus}
+        </foreach>
+      </trim>
+      <trim prefix="push_fail_info=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.pushFailInfo}
+        </foreach>
+      </trim>
+      <trim prefix="return_data=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.returnData}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE master_data_push_interface_records
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+</mapper>

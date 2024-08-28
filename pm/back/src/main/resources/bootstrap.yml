@@ -1,0 +1,139 @@
+server:
+  port: 8090
+  tomcat:
+    max-http-form-post-size: -1
+spring:
+  application:
+    app-key: pm # 应用appKey（来自开发者平台）
+    version: 1.0     # 应用版本号（来自开发者平台）
+    name:  ${spring.application.app-key}-#{'${spring.application.version}'.replace('.','-')}
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher #必填项 兼容springboot2.6和swagger2
+  cloud:
+    nacos:
+      server-addr: ${nacos.server-addr}
+      config:
+        file-extension: yaml
+        namespace: ${nacos.namespace}
+        extension-configs:
+          - dataId: oec-cloud-common.yml
+            group: ${nacos.config-group}
+            refresh: true
+          - dataId: oec-cloud-seata.yml
+            group: ${nacos.config-group}
+            refresh: true
+          - dataId: oec-cloud-feign.yml
+            group: ${nacos.config-group}
+            refresh: true
+          - dataId: oec-cloud-sentinel.yml
+            group: ${nacos.config-group}
+            refresh: true
+          - dataId: oec-cloud-mybatis.yml
+            group: ${nacos.config-group}
+            refresh: true
+        prefix: ${spring.application.app-key}-${spring.application.version}
+    # Spring Cloud Stream 配置项，对应 BindingServiceProperties 类
+    stream:
+      # Binding 配置项，对应 BindingProperties Map
+      bindings:
+        action-log-out:
+          destination: TOPIC-ACTION-LOG-${spring.application.app-key}-${spring.application.version}-${spring.profiles.active} # 目的地。这里使用 RocketMQ Topic
+          content-type: application/json # 内容格式。这里使用 JSON
+        notice-out:
+          destination: NOTICE-${spring.application.app-key}-${spring.application.version}-${spring.profiles.active} # 目的地。这里使用 RocketMQ Topic
+          content-type: application/json # 内容格式。这里使用 JSON
+        action-log-in:
+          destination: TOPIC-ACTION-LOG-${spring.application.app-key}-${spring.application.version}-${spring.profiles.active}
+          group: ACTION-LOG-GROUP-${spring.application.app-key}-${spring.application.version}
+        notice-in:
+          destination: NOTICE-${spring.application.app-key}-${spring.application.version}-${spring.profiles.active}
+          group: NOTICE-GROUP-${spring.application.app-key}-${spring.application.version}
+  main:
+    allow-bean-definition-overriding: true
+  cache:
+    type: none  # 可选 redis、none、ehcache
+  redis:
+    timeout: 20000     # 链接超时时间（毫秒）
+    host: 61.172.179.56 # server host
+    port: 6379
+    database: 0
+    lettuce:
+      pool:
+        max-idle: 8        # 最大空闲连接
+        min-idle: 0        # 最小空闲链接
+        max-active: 8      # 最大连接数（负数表示没有限制）
+        max-wait: -1       # 最大阻塞等待时间（负数表示没有限制）
+jwtUtils:
+  id: jwt
+  secret: 6686df7fc3a34e26a61c034d5ec82488
+  ttlMillis: 3600000
+#mybatis:
+#  mapperLocations: classpath*:/mapper/**/*.xml
+#  configuration:
+#    cacheEnabled: true     #使全局的映射器启用或禁用缓存
+#    lazyLoadingEnabled: true    #全局启用或禁用延迟加载。当禁用时，所有关联对象都会即时加载
+#    aggressiveLazyLoading: true  #当启用时，有延迟加载属性的对象在被调用时将会完全加载任意属性。否则，每种属性将会按需要加载
+#    multipleResultSetsEnabled: true   #是否允许单条sql 返回多个数据集  (取决于驱动的兼容性) default:true
+#    useColumnLabel: true              #是否可以使用列的别名 (取决于驱动的兼容性) default:true
+#    useGeneratedKeys: false           #允许JDBC 生成主键。需要驱动器支持。如果设为了true，这个设置将强制使用被生成的主键，有一些驱动器不兼容不过仍然可以执行。  default:false
+#    autoMappingBehavior: PARTIAL      #指定 MyBatis 如何自动映射 数据基表的列 NONE：不隐射　PARTIAL:部分  FULL:全部
+#    defaultExecutorType: SIMPLE       #这是默认的执行类型  （SIMPLE: 简单； REUSE: 执行器可能重复使用prepared statements语句；BATCH: 执行器可以重复执行语句和批量更新）
+#    mapUnderscoreToCamelCase: true    #使用驼峰命名法转换字段。
+#    localCacheScope: SESSION          #设置本地缓存范围 session:就会有数据的共享  statement:语句范围 (这样就不会有数据的共享 ) defalut:session
+#    jdbcTypeForNull: NULL             #设置但JDBC类型为空时,某些驱动程序 要指定值,default:OTHER，插入空值时不需要指定类型
+
+#启信宝
+qixin:
+  appkey: 266b9724-e6df-4897-ab08-a00d9554c2fd
+  secretKey: a1177eb8-126b-403c-acbd-026ff9eceb5d
+  host: https://api.qixin.com/
+  profile: APIService
+
+#企业微信
+weChat:
+  corpid: ww21ecf19d6c519f83
+  corpsecret: G3rf94sZqkZJ90duduA-TCIaou-QUeA9qNe7ANtjR9Y
+  agentid: 1000006
+
+#百度短信
+baidu:
+  sms:
+    accessKey: 9aa348551a8d40dc8077d619c6120772
+    secretAccess: 61ce9306d76a41868d1193536fda7653
+    endpoint: http://smsv3.bj.baidubce.com
+    signature:
+      #短信签名的id(百度云获取)
+      id: sms-sign-WmvZrj56673
+    template:
+      #短信模板：短信验证码模板code
+      code: sms-tmpl-SDDBTY24370
+      #短信模板：消息模板code
+      msg: sms-tmpl-snvDbF24911
+
+logging:
+  level:
+#    com.geeke.gen.dao.*: debug
+#    com.geeke.admin.dao.*: debug
+#    com.geeke.sys.dao.*: debug
+#    org.camunda: debug
+#    com.geeke.gen: debug
+    com.alibaba.cloud.stream.binder.rocketmq: debug
+
+dcConfigure:
+  rootPath: C:\workspace\geeke  #代码生成地址配置
+  dbName: mysql                          #数据库类型:  mysql/oracle/mssql
+
+nacos:
+  namespace: a194e88e-7e25-4ec2-aadf-f940d6df77d2
+  config-group: DEV_GROUP #配置服务组
+  discovery-group: SEATA_GROUP #注册服务组(如果启用seata,那么注册服务组必须和seata在一个组)
+  server-addr: 61.172.179.56:8848 #nacos地址
+  username: nacos #nacos用户名
+  password: nacos #nacos密码

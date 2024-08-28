@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.projectManage.dao.MilestoneManageDao">
+  <sql id="milestoneManageColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.project_id AS "project.id",
+      IFNULL(project.project_name,'') AS "project.projectName",
+      IFNULL(project.project_code,'') AS "project.projectCode",
+      a.milestone_name AS "milestoneName",
+      a.milestone_status AS "milestoneStatus.id",
+      IFNULL(milestoneStatus.name,'') AS "milestoneStatus.name",
+      IFNULL(milestoneStatus.value,'') AS "milestoneStatus.value",
+      date_format(a.plan_begin, '%Y-%m-%d') AS "planBegin",
+      date_format(a.plan_end, '%Y-%m-%d') AS "planEnd",
+      date_format(a.real_begin, '%Y-%m-%d') AS "realBegin",
+      date_format(a.real_end, '%Y-%m-%d') AS "realEnd",
+      (select count(*) from schedule_manage t1 where t1.del_flag = '0' and t1.milestone_id = a.id) as "scheduleCnt",
+      (select count(*) from schedule_manage t1 where t1.del_flag = '0' and t1.milestone_id = a.id and t1.schedule_status = 1859848726116008005) as "scheduleCompletedCnt",
+      a.progress_rate AS "progressRate",
+      (
+		select group_concat(distinct t2.name)
+		from team_member t1
+		left join sys_user t2 on t2.id = t1.user_id
+		where find_in_set(t1.user_id, a.participants)
+      ) AS "participants",
+      a.participants as "participantIds",
+      a.milestone_desc AS "milestoneDesc",
+      a.sort AS "sort",
+      (
+        select group_concat(t1.name)
+        from sys_file t1
+        where t1.del_flag = 0
+            and t1.object_id = cast(a.annex as signed)
+      ) AS "annexName",
+      a.annex AS "annex",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+    </trim>
+  </sql>
+  <sql id="milestoneManageJoins">
+    LEFT JOIN project_list project ON project.id = a.project_id
+    LEFT JOIN sys_dict_item milestoneStatus ON milestoneStatus.id = a.milestone_status
+  </sql>
+  <select id="get" resultType="com.geeke.projectManage.entity.MilestoneManage">
+    SELECT
+    <include refid="milestoneManageColumns" />
+    FROM milestone_manage a
+    <include refid="milestoneManageJoins" />
+    WHERE a.id = #{id}
+  </select>
+
+  <select id="getBymilestone" resultType="com.geeke.projectManage.entity.MilestoneManage">
+    SELECT
+    <include refid="milestoneManageColumns" />
+    FROM milestone_manage a
+    inner join project_list pl on a.project_id = pl.id
+    <include refid="milestoneManageJoins" />
+    WHERE pl.project_code = #{id}
+  </select>
+
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM milestone_manage a
+    <include refid="milestoneManageJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultType="com.geeke.projectManage.entity.MilestoneManage">
+    SELECT
+    <include refid="milestoneManageColumns" />
+    FROM milestone_manage a
+    <include refid="milestoneManageJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.sort ASC, a.create_date desc
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultType="com.geeke.projectManage.entity.MilestoneManage">
+    SELECT
+    <include refid="milestoneManageColumns" />
+    FROM milestone_manage a
+    <include refid="milestoneManageJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <if test="extra != null and extra != ''">
+        and a.project_id in (${extra})
+      </if>
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.sort ASC, a.create_date desc
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO milestone_manage(
+    <trim suffixOverrides=",">
+      id,
+      project_id,
+      milestone_name,
+      milestone_status,
+      plan_begin,
+      plan_end,
+      real_begin,
+      real_end,
+      progress_rate,
+      participants,
+      milestone_desc,
+      sort,
+      annex,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ project.id },
+      #{ milestoneName },
+      1849492941489430558,
+      #{ planBegin },
+      #{ planEnd },
+      #{ realBegin },
+      #{ realEnd },
+      #{ progressRate },
+      #{ participants },
+      #{ milestoneDesc },
+      #{ sort },
+      #{ annex },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE milestone_manage SET
+    <trim suffixOverrides=",">
+      project_id = #{ project.id },
+      milestone_name = #{ milestoneName },
+      milestone_status = #{ milestoneStatus.id },
+      plan_begin = #{ planBegin },
+      plan_end = #{ planEnd },
+      real_begin = #{ realBegin },
+      real_end = #{ realEnd },
+      progress_rate = #{ progressRate },
+      participants = #{ participants },
+      milestone_desc = #{ milestoneDesc },
+      sort = #{ sort },
+      annex = #{ annex },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE milestone_manage SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO milestone_manage(
+    <trim suffixOverrides=",">
+      id,
+      project_id,
+      milestone_name,
+      milestone_status,
+      plan_begin,
+      plan_end,
+      real_begin,
+      real_end,
+      progress_rate,
+      participants,
+      milestone_desc,
+      sort,
+      annex,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.project.id},
+        #{entity.milestoneName},
+        #{entity.milestoneStatus.id},
+        #{entity.planBegin},
+        #{entity.planEnd},
+        #{entity.realBegin},
+        #{entity.realEnd},
+        #{entity.progressRate},
+        #{entity.participants},
+        #{entity.milestoneDesc},
+        #{entity.sort},
+        #{entity.annex},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE milestone_manage
+    <set>
+      <trim prefix="project_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.project.id}
+        </foreach>
+      </trim>
+      <trim prefix="milestone_name=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.milestoneName}
+        </foreach>
+      </trim>
+      <trim prefix="milestone_status=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.milestoneStatus.id}
+        </foreach>
+      </trim>
+      <trim prefix="plan_begin=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.planBegin}
+        </foreach>
+      </trim>
+      <trim prefix="plan_end=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.planEnd}
+        </foreach>
+      </trim>
+      <trim prefix="real_begin=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.realBegin}
+        </foreach>
+      </trim>
+      <trim prefix="real_end=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.realEnd}
+        </foreach>
+      </trim>
+      <trim prefix="progress_rate=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.progressRate}
+        </foreach>
+      </trim>
+      <trim prefix="participants=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.participants}
+        </foreach>
+      </trim>
+      <trim prefix="milestone_desc=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.milestoneDesc}
+        </foreach>
+      </trim>
+      <trim prefix="sort=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.sort}
+        </foreach>
+      </trim>
+      <trim prefix="annex=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.annex}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE milestone_manage
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="handleMilestoneStatus">
+    update milestone_manage
+    set milestone_status = #{milestoneStatus}
+    <choose>
+      <when test="status == '1' or status == 1">
+        ,real_begin = now()
+      </when>
+      <when test="status == '2' or status == 2">
+        ,real_end = now()
+      </when>
+    </choose>
+    where id = #{milestoneId}
+  </update>
+</mapper>

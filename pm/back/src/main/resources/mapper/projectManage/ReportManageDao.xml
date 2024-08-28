@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.projectManage.dao.ReportManageDao">
+  <sql id="reportManageColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.project_id AS "project.id",
+      IFNULL(project.project_name,'') AS "project.projectName",
+      IFNULL(project.project_code,'') AS "project.projectCode",
+      a.report_type AS "reportType.id",
+      IFNULL(reportType.name,'') AS "reportType.name",
+      IFNULL(reportType.dict_type_id,'') AS "reportType.dictTypeId",
+      IFNULL(reportType.value,'') AS "reportType.value",
+      a.overtime_type AS "overtimeType.id",
+      IFNULL(overtimeType.name,'') AS "overtimeType.name",
+      IFNULL(overtimeType.dict_type_id,'') AS "overtimeType.dictTypeId",
+      IFNULL(overtimeType.value,'') AS "overtimeType.value",
+      a.report_begin AS "reportBegin",
+      a.report_end AS "reportEnd",
+      a.report_day AS "reportDay",
+      date_format(a.overtime_begin, '%H:%i') AS "overtimeBegin",
+      date_format(a.overtime_end, '%H:%i') AS "overtimeEnd",
+      a.overtime_hour AS "overtimeHour",
+      a.work_content AS "workContent",
+      a.annex AS "annex",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+    </trim>
+  </sql>
+  <sql id="reportManageJoins">
+    LEFT JOIN project_list project ON project.id = a.project_id
+    LEFT JOIN sys_dict_item reportType ON reportType.id = a.report_type
+    LEFT JOIN sys_dict_item overtimeType ON overtimeType.id = a.overtime_type
+  </sql>
+  <select id="get" resultType="com.geeke.projectManage.entity.ReportManage">
+    SELECT
+    <include refid="reportManageColumns" />
+    FROM report_manage a
+    <include refid="reportManageJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="getListByProjectIdAndDate" resultType="com.geeke.projectManage.entity.ReportManage">
+    SELECT a.*
+    FROM report_manage a
+    WHERE a.project_id = #{projectId}
+      AND a.report_begin like  concat('%',#{reportDate},'%')
+      AND a.report_type = '1840490672856612914'
+      AND a.del_flag = 0
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM report_manage a
+    <include refid="reportManageJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultType="com.geeke.projectManage.entity.ReportManage">
+    SELECT
+    (select t1.name from sys_dict_item t1 where t1.id = (select t2.team_role_id from team_member t2 where t2.project_id = a.project_id limit 1)) as "teamRole",
+    <include refid="reportManageColumns" />
+    FROM report_manage a
+    <include refid="reportManageJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <if test="extra.type != 'admin'">
+        and case when exists (select 1 from project_list t1 where t1.id = a.project_id and t1.project_manager = #{extra.userId})
+            then true
+            else a.report_user = #{extra.userId}
+            end
+      </if>
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.create_date DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultType="com.geeke.projectManage.entity.ReportManage">
+    SELECT
+    <include refid="reportManageColumns" />
+    FROM report_manage a
+    <include refid="reportManageJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.create_date DESC
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO report_manage(
+    <trim suffixOverrides=",">
+      id,
+      project_id,
+      report_type,
+      report_user,
+      overtime_type,
+      report_begin,
+      report_end,
+      report_day,
+      overtime_begin,
+      overtime_end,
+      overtime_hour,
+      work_content,
+      annex,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ project.id },
+      #{ reportType.id },
+      #{ reportUser },
+      #{ overtimeType.id },
+      #{ reportBegin },
+      #{ reportEnd },
+      #{ reportDay },
+      #{ overtimeBegin },
+      #{ overtimeEnd },
+      #{ overtimeHour },
+      #{ workContent },
+      #{ annex },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE report_manage SET
+    <trim suffixOverrides=",">
+      project_id = #{ project.id },
+      report_type = #{ reportType.id },
+      overtime_type = #{ overtimeType.id },
+      report_begin = #{ reportBegin },
+      report_end = #{ reportEnd },
+      report_day = #{ reportDay },
+      overtime_begin = #{ overtimeBegin },
+      overtime_end = #{ overtimeEnd },
+      overtime_hour = #{ overtimeHour },
+      work_content = #{ workContent },
+      annex = #{ annex },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE report_manage SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO report_manage(
+    <trim suffixOverrides=",">
+      id,
+      project_id,
+      report_type,
+      overtime_type,
+      report_begin,
+      report_end,
+      report_day,
+      overtime_begin,
+      overtime_end,
+      overtime_hour,
+      work_content,
+      annex,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.project.id},
+        #{entity.reportType.id},
+        #{entity.overtimeType.id},
+        #{entity.reportBegin},
+        #{entity.reportEnd},
+        #{entity.reportDay},
+        #{entity.overtimeBegin},
+        #{entity.overtimeEnd},
+        #{entity.overtimeHour},
+        #{entity.workContent},
+        #{entity.annex},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE report_manage
+    <set>
+      <trim prefix="project_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.project.id}
+        </foreach>
+      </trim>
+      <trim prefix="report_type=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.reportType.id}
+        </foreach>
+      </trim>
+      <trim prefix="overtime_type=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.overtimeType.id}
+        </foreach>
+      </trim>
+      <trim prefix="report_begin=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.reportBegin}
+        </foreach>
+      </trim>
+      <trim prefix="report_end=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.reportEnd}
+        </foreach>
+      </trim>
+      <trim prefix="report_day=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.reportDay}
+        </foreach>
+      </trim>
+      <trim prefix="overtime_begin=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.overtimeBegin}
+        </foreach>
+      </trim>
+      <trim prefix="overtime_end=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.overtimeEnd}
+        </foreach>
+      </trim>
+      <trim prefix="overtime_hour=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.overtimeHour}
+        </foreach>
+      </trim>
+      <trim prefix="work_content=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.workContent}
+        </foreach>
+      </trim>
+      <trim prefix="annex=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.annex}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE report_manage
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+</mapper>

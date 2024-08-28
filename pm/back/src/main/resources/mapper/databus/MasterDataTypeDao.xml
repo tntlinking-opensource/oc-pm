@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.databus.dao.MasterDataTypeDao">
+  <sql id="masterDataTypeColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      IFNULL(id.id,'') AS "id.id",
+      IFNULL(id.master_data_type_id,'') AS "id.masterDataTypeId",
+      IFNULL(id.filed_code,'') AS "id.filedCode",
+      IFNULL(id.filed_name,'') AS "id.filedName",
+      IFNULL(id.filed_type,'') AS "id.filedType",
+      IFNULL(id.filed_size,'') AS "id.filedSize",
+      IFNULL(id.filed_precision,'') AS "id.filedPrecision",
+      IFNULL(id.required,'') AS "id.required",
+      IFNULL(id.remarks,'') AS "id.remarks",
+      IFNULL(id.create_by,'') AS "id.createBy",
+      IFNULL(id.create_date,'') AS "id.createDate",
+      IFNULL(id.update_by,'') AS "id.updateBy",
+      IFNULL(id.del_flag,'') AS "id.delFlag",
+      IFNULL(id.update_date,'') AS "id.updateDate",
+      a.code AS "code",
+      a.name AS "name",
+      a.is_system AS "isSystem",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+    </trim>
+  </sql>
+  <sql id="masterDataTypeColumn">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.code AS "code",
+      a.name AS "name",
+      a.is_system AS "isSystem",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+    </trim>
+  </sql>
+  <sql id="masterDataTypeJoins">
+    LEFT JOIN standard_field id ON id.master_data_type_id = a.id
+  </sql>
+  <resultMap id="resultMasterDataTypeMap" type="com.geeke.databus.entity.MasterDataType">
+    <result property="id" column="id" />
+    <result property="code" column="code" />
+    <result property="name" column="name" />
+    <result property="isSystem" column="isSystem" />
+    <result property="remarks" column="remarks" />
+    <result property="createBy" column="createBy" />
+    <result property="createDate" column="createDate" />
+    <result property="updateBy" column="updateBy" />
+    <result property="updateDate" column="updateDate" />
+    <result property="delFlag" column="delFlag" />
+    <collection property="standardFieldList" javaType="com.geeke.databus.entity.StandardField">
+      <result property="id" column="id.id" />
+      <result property="masterDataTypeId" column="id.masterDataTypeId" />
+      <result property="filedCode" column="id.filedCode" />
+      <result property="filedName" column="id.filedName" />
+      <result property="filedType" column="id.filedType" />
+      <result property="filedSize" column="id.filedSize" />
+      <result property="filedPrecision" column="id.filedPrecision" />
+      <result property="required" column="id.required" />
+      <result property="remarks" column="id.remarks" />
+      <result property="createBy" column="id.createBy" />
+      <result property="createDate" column="id.createDate" />
+      <result property="updateBy" column="id.updateBy" />
+      <result property="delFlag" column="id.delFlag" />
+      <result property="updateDate" column="id.updateDate" />
+    </collection>
+  </resultMap>
+  <resultMap id="resultMasterDataType" type="com.geeke.databus.entity.MasterDataType">
+    <result property="id" column="id" />
+    <result property="code" column="code" />
+    <result property="name" column="name" />
+    <result property="isSystem" column="isSystem" />
+    <result property="remarks" column="remarks" />
+    <result property="createBy" column="createBy" />
+    <result property="createDate" column="createDate" />
+    <result property="updateBy" column="updateBy" />
+    <result property="updateDate" column="updateDate" />
+    <result property="delFlag" column="delFlag" />
+  </resultMap>
+  <select id="get" resultMap="resultMasterDataTypeMap">
+    SELECT
+    <include refid="masterDataTypeColumns" />
+    FROM master_data_type a
+    <include refid="masterDataTypeJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM master_data_type a
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultMap="resultMasterDataType">
+    SELECT
+    <include refid="masterDataTypeColumn" />
+    FROM master_data_type a
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.code ASC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultMap="resultMasterDataTypeMap">
+    SELECT
+    <include refid="masterDataTypeColumns" />
+    FROM master_data_type a
+    <include refid="masterDataTypeJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO master_data_type(
+    <trim suffixOverrides=",">
+      id,
+      code,
+      name,
+      is_system,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ code },
+      #{ name },
+      #{ isSystem },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE master_data_type SET
+    <trim suffixOverrides=",">
+      code = #{ code },
+      name = #{ name },
+      is_system = #{ isSystem },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE master_data_type SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO master_data_type(
+    <trim suffixOverrides=",">
+      id,
+      code,
+      name,
+      is_system,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.code},
+        #{entity.name},
+        #{entity.isSystem},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE master_data_type
+    <set>
+      <trim prefix="code=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.code}
+        </foreach>
+      </trim>
+      <trim prefix="name=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.name}
+        </foreach>
+      </trim>
+      <trim prefix="is_system=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.isSystem}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE master_data_type
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+</mapper>

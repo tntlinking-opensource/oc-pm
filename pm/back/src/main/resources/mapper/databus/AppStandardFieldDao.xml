@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.databus.dao.AppStandardFieldDao">
+  <sql id="appStandardFieldColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.master_data_type_id AS "masterDataTypeId",
+      a.app_id AS "appId",
+      a.standard_field_id AS "standardFieldId",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+    </trim>
+  </sql>
+  <sql id="appStandardFieldJoins">
+  </sql>
+  <resultMap id="resultAppStandardFieldMap" type="com.geeke.databus.entity.AppStandardField">
+    <result property="id" column="id" />
+    <result property="masterDataTypeId" column="masterDataTypeId" />
+    <result property="appId" column="appId" />
+    <result property="standardFieldId" column="standardFieldId" />
+    <result property="remarks" column="remarks" />
+    <result property="createBy" column="createBy" />
+    <result property="createDate" column="createDate" />
+    <result property="updateBy" column="updateBy" />
+    <result property="updateDate" column="updateDate" />
+    <result property="delFlag" column="delFlag" />
+  </resultMap>
+  <select id="get" resultMap="resultAppStandardFieldMap">
+    SELECT
+    <include refid="appStandardFieldColumns" />
+    FROM app_standard_field a
+    <include refid="appStandardFieldJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM app_standard_field a
+    <include refid="appStandardFieldJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultMap="resultAppStandardFieldMap">
+    SELECT
+    <include refid="appStandardFieldColumns" />
+    FROM app_standard_field a
+    <include refid="appStandardFieldJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultMap="resultAppStandardFieldMap">
+    SELECT
+    <include refid="appStandardFieldColumns" />
+    FROM app_standard_field a
+    <include refid="appStandardFieldJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO app_standard_field(
+    <trim suffixOverrides=",">
+      id,
+      master_data_type_id,
+      app_id,
+      standard_field_id,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ masterDataTypeId },
+      #{ appId },
+      #{ standardFieldId },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE app_standard_field SET
+    <trim suffixOverrides=",">
+      master_data_type_id = #{ masterDataTypeId },
+      app_id = #{ appId },
+      standard_field_id = #{ standardFieldId },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE app_standard_field SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="deleteBymasterDataTypeIdAndappId">
+    delete from app_standard_field where app_id = #{AppId} and master_data_type_id = #{MasterDataTypeId}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO app_standard_field(
+    <trim suffixOverrides=",">
+      id,
+      master_data_type_id,
+      app_id,
+      standard_field_id,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.masterDataTypeId},
+        #{entity.appId},
+        #{entity.standardFieldId},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE app_standard_field
+    <set>
+      <trim prefix="master_data_type_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.masterDataTypeId}
+        </foreach>
+      </trim>
+      <trim prefix="app_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.appId}
+        </foreach>
+      </trim>
+      <trim prefix="standard_field_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.standardFieldId}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE app_standard_field
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+</mapper>
