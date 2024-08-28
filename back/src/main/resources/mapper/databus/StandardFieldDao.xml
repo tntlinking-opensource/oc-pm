@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.databus.dao.StandardFieldDao">
+  <sql id="standardFieldColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.master_data_type_id AS "masterDataTypeId.",
+      a.filed_code AS "filedCode",
+      a.data_key AS "dataKey",
+      a.filed_name AS "filedName",
+      a.filed_type AS "filedType",
+      a.filed_size AS "filedSize",
+      a.filed_precision AS "filedPrecision",
+      a.required AS "required",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+    </trim>
+  </sql>
+  <sql id="standardFieldJoins">
+    LEFT JOIN master_data_type masterDataType ON masterDataType.id = a.master_data_type_id
+  </sql>
+  <resultMap id="resultStandardFieldMap" type="com.geeke.databus.entity.StandardField">
+    <result property="id" column="id" />
+    <result property="masterDataTypeId" column="masterDataTypeId" />
+    <result property="dataKey" column="dataKey" />
+    <result property="filedCode" column="filedCode" />
+    <result property="filedName" column="filedName" />
+    <result property="filedType" column="filedType" />
+    <result property="filedSize" column="filedSize" />
+    <result property="filedPrecision" column="filedPrecision" />
+    <result property="required" column="required" />
+    <result property="remarks" column="remarks" />
+    <result property="createBy" column="createBy" />
+    <result property="createDate" column="createDate" />
+    <result property="updateBy" column="updateBy" />
+    <result property="updateDate" column="updateDate" />
+    <result property="delFlag" column="delFlag" />
+  </resultMap>
+  <select id="get" resultMap="resultStandardFieldMap">
+    SELECT
+    <include refid="standardFieldColumns" />
+    FROM standard_field a
+    <include refid="standardFieldJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM standard_field a
+    <include refid="standardFieldJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultMap="resultStandardFieldMap">
+    SELECT
+    <include refid="standardFieldColumns" />
+    FROM standard_field a
+    <include refid="standardFieldJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultMap="resultStandardFieldMap">
+    SELECT
+    <include refid="standardFieldColumns" />
+    FROM standard_field a
+    <include refid="standardFieldJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO standard_field(
+    <trim suffixOverrides=",">
+      id,
+      master_data_type_id,
+      data_key,
+      filed_code,
+      filed_name,
+      filed_type,
+      filed_size,
+      filed_precision,
+      required,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ masterDataTypeId },
+      #{ dataKey },
+      #{ filedCode },
+      #{ filedName },
+      #{ filedType },
+      #{ filedSize },
+      #{ filedPrecision },
+      #{ required },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE standard_field SET
+    <trim suffixOverrides=",">
+      master_data_type_id = #{ masterDataTypeId },
+      data_key = #{ dataKey },
+      filed_code = #{ filedCode },
+      filed_name = #{ filedName },
+      filed_type = #{ filedType },
+      filed_size = #{ filedSize },
+      filed_precision = #{ filedPrecision },
+      required = #{ required },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE standard_field SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO standard_field(
+    <trim suffixOverrides=",">
+      id,
+      master_data_type_id,
+      data_key,
+      filed_code,
+      filed_name,
+      filed_type,
+      filed_size,
+      filed_precision,
+      required,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.masterDataTypeId},
+        #{entity.dataKey},
+        #{entity.filedCode},
+        #{entity.filedName},
+        #{entity.filedType},
+        #{entity.filedSize},
+        #{entity.filedPrecision},
+        #{entity.required},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE standard_field
+    <set>
+      <trim prefix="master_data_type_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.masterDataTypeId}
+        </foreach>
+      </trim>
+      <trim prefix="data_key=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.dataKey}
+        </foreach>
+      </trim>
+      <trim prefix="filed_code=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.filedCode}
+        </foreach>
+      </trim>
+      <trim prefix="filed_name=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.filedName}
+        </foreach>
+      </trim>
+      <trim prefix="filed_type=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.filedType}
+        </foreach>
+      </trim>
+      <trim prefix="filed_size=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.filedSize}
+        </foreach>
+      </trim>
+      <trim prefix="filed_precision=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.filedPrecision}
+        </foreach>
+      </trim>
+      <trim prefix="required=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.required}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE standard_field
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+</mapper>

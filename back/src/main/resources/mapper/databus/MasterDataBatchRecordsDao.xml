@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.databus.dao.MasterDataBatchRecordsDao">
+  <sql id="masterDataBatchRecordsColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.data_batch AS "dataBatch",
+      a.tenant_id AS "tenantId",
+      masterDataType.name AS "masterDataTypeId",
+      CONCAT(microApp.name,microVersion.name) AS "sourceAppId",
+      a.receive_date AS "receiveDate",
+      a.target_app_id AS "targetAppId",
+      a.push_status AS "pushStatus",
+      a.last_send_time AS "lastSendTime",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+      IFNULL(masterDataJson.id,'') AS "masterDataJson.id",
+      IFNULL(masterDataJson.master_data_batch_records_id,'') AS "masterDataJson.masterDataBatchRecords.id",
+      IFNULL(masterDataJson.data_json,'') AS "masterDataJson.dataJson",
+      IFNULL(masterDataJson.remarks,'') AS "masterDataJson.remarks",
+      IFNULL(masterDataRecords.id,'') AS "masterDataRecords.id",
+      IFNULL(masterDataRecords.master_data_batch_records_id,'') AS "masterDataRecords.masterDataBatchRecords.id",
+      IFNULL(masterDataRecords.order_number,'') AS "masterDataRecords.orderNumber",
+      IFNULL(masterDataRecords.tenant_id,'') AS "masterDataRecords.tenantId",
+      IFNULL(masterDataRecords.master_data_type_id,'') AS "masterDataRecords.masterDataTypeId",
+      IFNULL(masterDataRecords.data_key,'') AS "masterDataRecords.dataKey",
+      IFNULL(masterDataRecords.data_version,'') AS "masterDataRecords.dataVersion",
+      IFNULL(masterDataRecords.remarks,'') AS "masterDataRecords.remarks",
+    </trim>
+  </sql>
+  <sql id="masterDataBatchRecordsJoins">
+    INNER JOIN master_data_json masterDataJson ON masterDataJson.master_data_batch_records_id = a.id AND masterDataJson.del_flag = 0
+    INNER JOIN master_data_records masterDataRecords ON masterDataRecords.master_data_batch_records_id = a.id AND masterDataRecords.del_flag = 0
+    INNER JOIN master_data_type masterDataType ON masterDataType.id = a.master_data_type_id AND masterDataType.del_flag = 0
+    INNER JOIN micro_version microVersion ON microVersion.id = a.source_app_id AND microVersion.del_flag = 0
+    INNER JOIN micro_app microApp ON microApp.id = microVersion.app_id AND microApp.del_flag = 0
+  </sql>
+  <resultMap id="resultMasterDataBatchRecordsMap" type="com.geeke.databus.entity.MasterDataBatchRecords">
+    <result property="id" column="id" />
+    <result property="dataBatch" column="dataBatch" />
+    <result property="tenantId" column="tenantId" />
+    <result property="masterDataTypeId" column="masterDataTypeId" />
+    <result property="sourceAppId" column="sourceAppId" />
+    <result property="receiveDate" column="receiveDate" />
+    <result property="targetAppId" column="targetAppId" />
+    <result property="pushStatus" column="pushStatus" />
+    <result property="lastSendTime" column="lastSendTime" />
+    <result property="remarks" column="remarks" />
+    <result property="createBy" column="createBy" />
+    <result property="createDate" column="createDate" />
+    <result property="updateBy" column="updateBy" />
+    <result property="updateDate" column="updateDate" />
+    <result property="delFlag" column="delFlag" />
+    <collection property="masterDataJsonList" ofType="com.geeke.databus.entity.MasterDataJson">
+      <result property="id" column="masterDataJson.id" />
+      <result property="dataJson" column="masterDataJson.dataJson" />
+      <result property="remarks" column="masterDataJson.remarks" />
+      <result property="createBy" column="masterDataJson.createBy" />
+      <result property="createDate" column="masterDataJson.createDate" />
+      <result property="updateBy" column="masterDataJson.updateBy" />
+      <result property="updateDate" column="masterDataJson.updateDate" />
+      <result property="delFlag" column="masterDataJson.delFlag" />
+    </collection>
+    <collection property="masterDataRecordsList" ofType="com.geeke.databus.entity.MasterDataRecords">
+      <result property="id" column="masterDataRecords.id" />
+      <result property="orderNumber" column="masterDataRecords.orderNumber" />
+      <result property="tenantId" column="masterDataRecords.tenantId" />
+      <result property="masterDataTypeId" column="masterDataRecords.masterDataTypeId" />
+      <result property="dataKey" column="masterDataRecords.dataKey" />
+      <result property="dataVersion" column="masterDataRecords.dataVersion" />
+      <result property="remarks" column="masterDataRecords.remarks" />
+      <result property="createBy" column="masterDataRecords.createBy" />
+      <result property="createDate" column="masterDataRecords.createDate" />
+      <result property="updateBy" column="masterDataRecords.updateBy" />
+      <result property="updateDate" column="masterDataRecords.updateDate" />
+      <result property="delFlag" column="masterDataRecords.delFlag" />
+    </collection>
+  </resultMap>
+  <select id="get" resultMap="resultMasterDataBatchRecordsMap">
+    SELECT
+    <include refid="masterDataBatchRecordsColumns" />
+    FROM master_data_batch_records a
+    <include refid="masterDataBatchRecordsJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM master_data_batch_records a
+    <include refid="masterDataBatchRecordsJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultMap="resultMasterDataBatchRecordsMap">
+    SELECT
+    <include refid="masterDataBatchRecordsColumns" />
+    FROM master_data_batch_records a
+    <include refid="masterDataBatchRecordsJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultMap="resultMasterDataBatchRecordsMap">
+    SELECT
+    <include refid="masterDataBatchRecordsColumns" />
+    FROM master_data_batch_records a
+    <include refid="masterDataBatchRecordsJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.update_date DESC
+      </otherwise>
+    </choose>
+  </select>
+  <insert id="insert">
+    INSERT INTO master_data_batch_records(
+    <trim suffixOverrides=",">
+      id,
+      data_batch,
+      tenant_id,
+      master_data_type_id,
+      source_app_id,
+      receive_date,
+      target_app_id,
+      push_status,
+      last_send_time,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ dataBatch },
+      #{ tenantId },
+      #{ masterDataTypeId },
+      #{ sourceAppId },
+      #{ receiveDate },
+      #{ targetAppId },
+      #{ pushStatus },
+      #{ lastSendTime },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE master_data_batch_records SET
+    <trim suffixOverrides=",">
+      data_batch = #{ dataBatch },
+      tenant_id = #{ tenantId },
+      master_data_type_id = #{ masterDataTypeId },
+      source_app_id = #{ sourceAppId },
+      receive_date = #{ receiveDate },
+      target_app_id = #{ targetAppId },
+      push_status = #{ pushStatus },
+      last_send_time = #{ lastSendTime },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE master_data_batch_records SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO master_data_batch_records(
+    <trim suffixOverrides=",">
+      id,
+      data_batch,
+      tenant_id,
+      master_data_type_id,
+      source_app_id,
+      receive_date,
+      target_app_id,
+      push_status,
+      last_send_time,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.dataBatch},
+        #{entity.tenantId},
+        #{entity.masterDataTypeId},
+        #{entity.sourceAppId},
+        #{entity.receiveDate},
+        #{entity.targetAppId},
+        #{entity.pushStatus},
+        #{entity.lastSendTime},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE master_data_batch_records
+    <set>
+      <trim prefix="data_batch=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.dataBatch}
+        </foreach>
+      </trim>
+      <trim prefix="tenant_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.tenantId}
+        </foreach>
+      </trim>
+      <trim prefix="master_data_type_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.masterDataTypeId}
+        </foreach>
+      </trim>
+      <trim prefix="source_app_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.sourceAppId}
+        </foreach>
+      </trim>
+      <trim prefix="receive_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.receiveDate}
+        </foreach>
+      </trim>
+      <trim prefix="target_app_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.targetAppId}
+        </foreach>
+      </trim>
+      <trim prefix="push_status=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.pushStatus}
+        </foreach>
+      </trim>
+      <trim prefix="last_send_time=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.lastSendTime}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE master_data_batch_records
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+</mapper>

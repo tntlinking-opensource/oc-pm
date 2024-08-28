@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.geeke.team.dao.TeamMemberDao">
+  <sql id="teamMemberColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.project_id AS "project.id",
+      IFNULL(project.project_name,'') AS "project.projectName",
+      IFNULL(project.project_short_name,'') AS "project.projectShortName",
+      IFNULL(project.project_code,'') AS "project.projectCode",
+      `user`.id AS "user.id",
+      `user`.create_date as "user.createDate",
+      `user`.name AS "user.name",
+      `user`.email AS "user.email",
+      `user`.phone AS "user.phone",
+      `user`.department_id AS "user.department.id",
+      IFNULL(department.name,'') AS "user.department.name",
+      IFNULL(department.code,'') AS "user.department.code",
+      IFNULL(department.ids,'') AS "user.department.ids",
+
+      date_format(a.join_time, '%Y-%m-%d') AS "joinTime",
+      date_format(a.leave_time, '%Y-%m-%d') AS "leaveTime",
+
+      CASE
+      <![CDATA[
+          WHEN leave_time >= NOW() THEN 1
+          WHEN leave_time < NOW() THEN 2
+          ]]>
+      END AS memberStatus,
+      a.team_role_id AS "teamRole.id",
+      IFNULL(teamRole.name,'') AS "teamRole.name",
+      IFNULL(teamRole.dict_type_id,'') AS "teamRole.dictTypeId",
+      IFNULL(teamRole.value,'') AS "teamRole.value",
+      a.unit_price_cost AS "unitPriceCost",
+      a.plan_human_day AS "planHumanDay",
+      a.plan_cost AS "planCost",
+      a.remarks AS "remarks",
+      a.create_by AS "createBy",
+      a.create_date AS "createDate",
+      a.update_by AS "updateBy",
+      a.update_date AS "updateDate",
+      a.del_flag AS "delFlag",
+    </trim>
+  </sql>
+
+  <sql id="projectColumns">
+    <trim suffixOverrides=",">
+      a.id AS "id",
+      a.project_name AS "projectName",
+      a.project_code AS "projectCode",
+      a.project_short_name AS "projectShortName",
+
+      a.project_status AS "projectStatus.id",
+      IFNULL(projectStatus.name,'') AS "projectStatus.name",
+      IFNULL(projectStatus.value,'') AS "projectStatus.value",
+      IFNULL(projectStatus.dict_type_id,'') AS "projectStatus.dictTypeId",
+
+      a.project_manager AS "projectManager.id",
+      IFNULL(projectManager.name,'') AS "projectManager.name",
+
+      (SELECT COUNT(*) FROM team_member m where m.project_id=a.id and m.del_flag = 0) AS "memberCount",
+      date_format(a.plan_begin_date, '%Y-%m-%d') AS "planBeginDate",
+      date_format(a.plan_end_date, '%Y-%m-%d') AS "planEndDate",
+
+    </trim>
+  </sql>
+
+  <sql id="projectJoins">
+    LEFT JOIN sys_dict_item projectStatus ON projectStatus.id = a.project_status
+    LEFT JOIN sys_user projectManager ON projectManager.id = a.project_manager
+  </sql>
+
+  <sql id="teamMemberJoins">
+    LEFT JOIN project_list project ON project.id = a.project_id
+    LEFT JOIN sys_dict_item teamRole ON teamRole.id = a.team_role_id
+    LEFT JOIN sys_user `user` ON `user`.id = a.user_id
+    LEFT JOIN org_department department ON department.id = `user`.department_id
+  </sql>
+  <select id="get" resultType="com.geeke.team.entity.TeamMember">
+    SELECT
+    <include refid="teamMemberColumns" />
+    FROM team_member a
+    <include refid="teamMemberJoins" />
+    WHERE a.id = #{id}
+  </select>
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM team_member a
+    <include refid="teamMemberJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+  </select>
+  <select id="listPage" resultType="com.geeke.team.entity.TeamMember">
+    SELECT
+    <include refid="teamMemberColumns" />
+    FROM team_member a
+    <include refid="teamMemberJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.join_time DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+  <select id="listAll" resultType="com.geeke.team.entity.TeamMember">
+    SELECT
+    <include refid="teamMemberColumns" />
+    FROM team_member a
+    <include refid="teamMemberJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.join_time DESC
+      </otherwise>
+    </choose>
+  </select>
+
+  <select id="projectListPage" resultType="com.geeke.team.entity.Project">
+    SELECT
+    <include refid="projectColumns" />
+    FROM project_list a
+    <include refid="projectJoins" />
+    <where>
+      1=1
+      AND a.id > 0
+      AND a.del_flag = #{DEL_FLAG_NORMAL}
+      <include refid="Common.whereParams" />
+    </where>
+    <choose>
+      <when test="order != null and order != ''">
+        ORDER BY ${order}
+      </when>
+      <otherwise>
+        ORDER BY a.create_date DESC
+      </otherwise>
+    </choose>
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <select id="projectCount" resultType="java.lang.Integer">
+      SELECT COUNT(*) FROM project_list a
+      <include refid="projectJoins" />
+      <where>
+          1=1
+          AND a.id > 0
+          AND a.del_flag = #{DEL_FLAG_NORMAL}
+          <include refid="Common.whereParams" />
+      </where>
+  </select>
+    <select id="listTeamStatRole" resultType="com.geeke.team.entity.TeamRole">
+      SELECT
+        COALESCE(COUNT(teamRole.`name`), 0) AS "teamRoleNameCount",
+        team.team_role_id AS "teamRoleId",
+        teamRole.`name` AS "teamRoleName"
+      FROM
+        sys_dict_item teamRole
+          LEFT JOIN team_member team ON teamRole.id = team.team_role_id
+          LEFT JOIN project_list a ON a.id = team.project_id
+          LEFT JOIN sys_dict_type dictType ON teamRole.dict_type_id = dictType.id
+      WHERE
+        dictType.`code` = 'teamRole'
+        and a.id = #{id}
+        and team.del_flag=0
+        and a.del_flag=0
+        and dictType.del_flag=0
+        and teamRole.del_flag=0
+      GROUP BY
+        team.team_role_id,
+        teamRole.`name`;
+
+
+    </select>
+  <select id="listTeamRole" resultType="com.geeke.team.entity.TeamRole">
+    SELECT
+      teamRole.id AS "teamRoleId",
+      teamRole.`name` AS "teamRoleName"
+    FROM
+      sys_dict_item teamRole
+        LEFT JOIN sys_dict_type dictType ON teamRole.dict_type_id = dictType.id
+    WHERE
+      dictType.`code` = 'teamRole'
+  </select>
+  <select id="projectById" resultType="com.geeke.team.entity.Project">
+    SELECT
+    <include refid="projectColumns" />
+    FROM project_list a
+    <include refid="projectJoins" />
+    where a.id = #{id}
+      AND a.del_flag = 0
+
+
+  </select>
+
+  <insert id="insert">
+    INSERT INTO team_member(
+    <trim suffixOverrides=",">
+      id,
+      project_id,
+      user_id,
+      join_time,
+      leave_time,
+      team_role_id,
+      unit_price_cost,
+      plan_human_day,
+      plan_cost,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES (
+    <trim suffixOverrides=",">
+      #{ id },
+      #{ project.id },
+      #{ user.id },
+      #{ joinTime },
+      #{ leaveTime },
+      #{ teamRole.id },
+      #{ unitPriceCost },
+      #{ planHumanDay },
+      #{ planCost },
+      #{ remarks },
+      #{ createBy },
+      #{ createDate },
+      #{ updateBy },
+      #{ updateDate },
+      #{ delFlag },
+    </trim>
+    )
+  </insert>
+  <update id="update">
+    UPDATE team_member SET
+    <trim suffixOverrides=",">
+      project_id = #{ project.id },
+      user_id = #{ user.id },
+      join_time = #{ joinTime },
+      leave_time = #{ leaveTime },
+      team_role_id = #{ teamRole.id },
+      unit_price_cost = #{ unitPriceCost },
+      plan_human_day = #{ planHumanDay },
+      plan_cost = #{ planCost },
+      remarks = #{ remarks },
+      update_by = #{ updateBy },
+      update_date = #{ updateDate },
+    </trim>
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <update id="delete">
+    UPDATE team_member SET
+    update_by = #{updateBy},
+    update_date = #{updateDate},
+    del_flag = #{DEL_FLAG_DELETE}
+    WHERE id = #{id}
+    and update_date = #{oldUpdateDate}
+  </update>
+  <insert id="bulkInsert" parameterType="java.util.List">
+    INSERT INTO team_member(
+    <trim suffixOverrides=",">
+      id,
+      project_id,
+      user_id,
+      join_time,
+      leave_time,
+      team_role_id,
+      unit_price_cost,
+      plan_human_day,
+      plan_cost,
+      remarks,
+      create_by,
+      create_date,
+      update_by,
+      update_date,
+      del_flag,
+    </trim>
+    ) VALUES
+    <foreach collection="entitys" index="index" item="entity" open="" separator="," close="">
+      (
+      <trim suffixOverrides=",">
+        #{entity.id},
+        #{entity.project.id},
+        #{entity.user.id},
+        #{entity.joinTime},
+        #{entity.leaveTime},
+        #{entity.teamRole.id},
+        #{entity.unitPriceCost},
+        #{entity.planHumanDay},
+        #{entity.planCost},
+        #{entity.remarks},
+        #{entity.createBy},
+        #{entity.createDate},
+        #{entity.updateBy},
+        #{entity.updateDate},
+        #{entity.delFlag},
+      </trim>
+      )
+    </foreach>
+  </insert>
+  <update id="bulkUpdate" parameterType="java.util.List">
+    UPDATE team_member
+    <set>
+      <trim prefix="project_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.project.id}
+        </foreach>
+      </trim>
+      <trim prefix="user_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.user.id}
+        </foreach>
+      </trim>
+      <trim prefix="join_time=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.joinTime}
+        </foreach>
+      </trim>
+      <trim prefix="leave_time=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.leaveTime}
+        </foreach>
+      </trim>
+      <trim prefix="team_role_id=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.teamRole.id}
+        </foreach>
+      </trim>
+      <trim prefix="unit_price_cost=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.unitPriceCost}
+        </foreach>
+      </trim>
+      <trim prefix="plan_human_day=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.planHumanDay}
+        </foreach>
+      </trim>
+      <trim prefix="plan_cost=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.planCost}
+        </foreach>
+      </trim>
+      <trim prefix="remarks=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.remarks}
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+  <update id="bulkDelete" parameterType="java.util.List">
+    UPDATE team_member
+    <set>
+      <trim prefix="del_flag=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then 1
+        </foreach>
+      </trim>
+      <trim prefix="update_by=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateBy}
+        </foreach>
+      </trim>
+      <trim prefix="update_date=case" suffix="end,">
+        <foreach collection="entitys" item="entity" index="index">
+          when id=#{entity.id} then #{entity.updateDate}
+        </foreach>
+      </trim>
+    </set>
+    WHERE
+    <foreach collection="entitys" item="entity" index="index" separator="OR" open="(" close=")">
+      id = #{entity.id} and update_date = #{entity.oldUpdateDate}
+    </foreach>
+  </update>
+</mapper>
