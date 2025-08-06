@@ -33,7 +33,7 @@
 
 ## 🤗【技术社区】
 
-请访问官网扫码加入技术社区交流：https://open.tntlinking.com/ecology/joinCommunity?site=gitee
+请访问官网扫码加入技术社区交流：https://open.tntlinking.com/ecology/joinCommunity?site=github
 
 请关注公众号【天天开源软件】以便获得最新产品更新信息。
 
